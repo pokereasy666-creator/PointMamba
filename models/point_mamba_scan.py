@@ -139,7 +139,7 @@ def serialization(pos, feat=None, x_res=None, order="z", layers_outputs=[], grid
 
     batch_idx = torch.arange(0, pos.shape[0], 1.0).unsqueeze(1).repeat(1, pos.shape[1]).to(torch.int64).to(pos.device)
 
-    point_dict = {'batch': batch_idx.flatten(), 'grid_coord': grid_coord.flatten(0, 1), }
+    point_dict = {'batch': batch_idx.flatten(), 'grid_coord': grid_coord.flatten(0, 1), 'coord': pos.flatten(0, 1)}
     point_dict = Point(**point_dict)
     point_dict.serialization(order=order)
 
@@ -395,9 +395,9 @@ class PointMambaScan(nn.Module):
 
         # # reordering strategy
         _, _, _, group_input_tokens_forward, pos_forward = serialization_func(center, group_input_tokens, pos,
-                                                                              'hilbert')
+                                                                              'radial')
         _, _, _, group_input_tokens_backward, pos_backward = serialization_func(center, group_input_tokens, pos,
-                                                                                'hilbert-trans')
+                                                                                'azimuthal')
         group_input_tokens_forward = apply_OrderScale(group_input_tokens_forward,
                                                       self.OrderScale_gamma_1, self.OrderScale_beta_1)
         group_input_tokens_backward = apply_OrderScale(group_input_tokens_backward,
@@ -664,8 +664,7 @@ class Point_MAE_Mamba_serializationV2(nn.Module):
         neighborhood, center = self.group_divider(pts)
         B, G, S, _ = neighborhood.shape
 
-        order_list = ['hilbert', 'hilbert-trans']
-        # order_list = ['hilbert']
+        order_list = ['radial', 'azimuthal']
         order_index = np.random.choice([i for i in range(len(order_list))], 1, replace=False)
 
         center, order, index_order, _, _ = serialization_func(center, None, None, order_list[order_index[0]])
