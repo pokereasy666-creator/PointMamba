@@ -297,7 +297,7 @@ class MambaInnerFn(torch.autograd.Function):
         # The kernel supports passing in a pre-allocated dx (e.g., in case we want to fuse the
         # backward of conv1d with the backward of chunk).
         dx, dconv1d_weight, dconv1d_bias, *_ = causal_conv1d_cuda.causal_conv1d_bwd(
-            x, conv1d_weight, conv1d_bias, dconv1d_out, dx, True
+            x, conv1d_weight, conv1d_bias, dconv1d_out, None, dx, True
         )
         dconv1d_bias = dconv1d_bias if conv1d_bias is not None else None
         dconv1d_weight = rearrange(dconv1d_weight, "d w -> d 1 w")
