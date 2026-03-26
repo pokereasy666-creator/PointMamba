@@ -188,14 +188,14 @@ class Mamba(nn.Module):
             B = rearrange(B, "(b l) dstate -> b dstate l", l=seqlen).contiguous()
             C = rearrange(C, "(b l) dstate -> b dstate l", l=seqlen).contiguous()
             assert self.activation in ["silu", "swish"]
-            y = selective_scan_fn(
+            y = selective_scan_ref(
                 x,
                 dt,
                 A,
                 B,
                 C,
                 self.D.float(),
-                z=None,
+                z=z,
                 delta_bias=self.dt_proj.bias.float(),
                 delta_softplus=True,
                 return_last_state=ssm_state is not None,
@@ -203,8 +203,6 @@ class Mamba(nn.Module):
             if ssm_state is not None:
                 y, last_state = y
                 ssm_state.copy_(last_state)
-            # Apply z-gating in pure PyTorch (avoids buggy CUDA z backward)
-            y = y * F.silu(z)
             y = rearrange(y, "b d l -> b l d")
             out = self.out_proj(y)
         return out
