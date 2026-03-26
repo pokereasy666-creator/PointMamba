@@ -195,7 +195,7 @@ class Mamba(nn.Module):
                 B,
                 C,
                 self.D.float(),
-                z=z,
+                z=None,
                 delta_bias=self.dt_proj.bias.float(),
                 delta_softplus=True,
                 return_last_state=ssm_state is not None,
@@ -203,6 +203,8 @@ class Mamba(nn.Module):
             if ssm_state is not None:
                 y, last_state = y
                 ssm_state.copy_(last_state)
+            # Apply z-gating in pure PyTorch (avoids buggy CUDA z backward)
+            y = y * F.silu(z)
             y = rearrange(y, "b d l -> b l d")
             out = self.out_proj(y)
         return out
