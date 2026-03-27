@@ -188,7 +188,7 @@ class Mamba(nn.Module):
             B = rearrange(B, "(b l) dstate -> b dstate l", l=seqlen).contiguous()
             C = rearrange(C, "(b l) dstate -> b dstate l", l=seqlen).contiguous()
             assert self.activation in ["silu", "swish"]
-            y = selective_scan_ref(
+            y = selective_scan_fn(
                 x,
                 dt,
                 A,
