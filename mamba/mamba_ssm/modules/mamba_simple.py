@@ -121,6 +121,13 @@ class Mamba(nn.Module):
         hidden_states: (B, L, D)
         Returns: same shape as hidden_states
         """
+        # selective_scan_cuda does not support FP16; disable AMP autocast
+        input_dtype = hidden_states.dtype
+        with torch.cuda.amp.autocast(enabled=False):
+            hidden_states = hidden_states.float()
+            return self._forward_inner(hidden_states, inference_params).to(input_dtype)
+
+    def _forward_inner(self, hidden_states, inference_params=None):
         batch, seqlen, dim = hidden_states.shape
 
         conv_state, ssm_state = None, None
